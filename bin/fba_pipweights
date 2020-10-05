@@ -13,6 +13,8 @@ import argparse
 
 from bitarray import bitarray
 
+import fitsio
+
 import fiberassign
 
 from fiberassign.utils import Logger, distribute_discrete
@@ -127,19 +129,8 @@ def main():
     tgarray = bitarray(len(tg_science) * n_realization)
     tgarray.setall(False)
 
-    # NOTE:  Here we assume that each realization will be changing the target
-    # subpriority values and NOT the target RA/DEC.  If changing the target positions,
-    # then the following lines must be moved inside the loop below.
-
+    # Target tree
     tree = TargetTree(tgs)
-
-    tgsavail = TargetsAvailable(hw, tgs, tiles, tree)
-
-    del tree
-
-    favail = LocationsAvailable(tgsavail)
-
-    asgn = Assignment(tgs, tgsavail, favail)
 
     for realization in my_realizations:
         # Set the seed based on the realization, so that the result is reproducible
@@ -151,6 +142,17 @@ def main():
         for indx, tgid in enumerate(tg_science):
             tg = tgs.get(tgid)
             tg.subpriority = new_subpriority[indx]
+
+        # Do any dithering of tiles here...
+
+
+        # Compute available targets / locations
+
+        tgsavail = TargetsAvailable(hw, tgs, tiles, tree)
+
+        favail = LocationsAvailable(tgsavail)
+
+        asgn = Assignment(tgs, tgsavail, favail)
 
         # Replay the survey log for each time fiber assignment was run.  For now, this
         # is just doing the tiles all at once.
@@ -175,43 +177,21 @@ def main():
                         # Not a science target
                         pass
 
-    # Reduce bitarrays.  The bitarray type conforms to the buffer protocol.
+    # Reduce bitarrays to root process.  The bitarray type conforms to the
+    # buffer protocol.
 
-    tgall = bitarray(tgarray)
-    tgall.setall(False)
-    MPI.COMM_WORLD.Allreduce(tgarray, tgall, op=MPI.BOR)
+    tgall = None
+    if mpi_rank == 0:
+        tgall = bitarray(tgarray)
+        tgall.setall(False)
 
-    # Compute the PIP weights
+    MPI.COMM_WORLD.Reduce(tgarray, tgall, op=MPI.BOR, root=0)
 
-    # Amount of work per science target (index * (total - index))
-    n_science = len(tg_science)
-    work = np.array([x * (n_science - x) for x in range(n_science)], dtype=np.float32)
+    # Write it out
 
-    # Distribute work
-    dist_targets = distribute_discrete(work, mpi_procs)
-    my_first, my_n = dist_targets[mpi_rank]
+    if mpi_rank == 0:
+        pass
 
-    pip = dict()
-
-    for targ in range(my_n):
-        indx = my_first + targ
-        a_slice = slice(indx * n_realization, (indx + 1) * n_realization)
-        tg_a = tgall[a_slice]
-        for other in range(indx, n_science):
-            b_slice = slice(other * n_realization, (other + 1) * n_realization)
-            tg_b = tgall[b_slice]
-            popcount = (tg_a & tg_b).count()
-            if popcount > 0:
-                wt = n_realization / popcount
-                if tg_science[indx] not in pip:
-                    pip[tg_science[indx]] = dict()
-                if tg_science[other] not in pip:
-                    pip[tg_science[other]] = dict()
-                pip[tg_science[indx]][tg_science[other]] = wt
-                pip[tg_science[other]][tg_science[indx]] = wt
-
-    # How should this be written out?
-    return
 
 if __name__ == "__main__":
     main()

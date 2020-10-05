@@ -1279,22 +1279,22 @@ PYBIND11_MODULE(_internal, m) {
         .def_readonly("id", &fba::Tiles::id, R"(
             The array of tile IDs.
         )")
-        .def_readonly("ra", &fba::Tiles::ra, R"(
+        .def_readwrite("ra", &fba::Tiles::ra, R"(
             The array of tile RA values.
         )")
-        .def_readonly("dec", &fba::Tiles::dec, R"(
+        .def_readwrite("dec", &fba::Tiles::dec, R"(
             The array of tile DEC values.
         )")
-        .def_readonly("obscond", &fba::Tiles::obscond, R"(
+        .def_readwrite("obscond", &fba::Tiles::obscond, R"(
             The array of tile observing conditions values.
         )")
-        .def_readonly("obstime", &fba::Tiles::obstime, R"(
+        .def_readwrite("obstime", &fba::Tiles::obstime, R"(
             The array of tile observation times.
         )")
-        .def_readonly("obstheta", &fba::Tiles::obstheta, R"(
+        .def_readwrite("obstheta", &fba::Tiles::obstheta, R"(
             The array of tile field rotation values.
         )")
-        .def_readonly("obshourang", &fba::Tiles::obshourang, R"(
+        .def_readwrite("obshourang", &fba::Tiles::obshourang, R"(
             The array of tile observation hour angles.
         )")
         .def_readonly("order", &fba::Tiles::order, R"(
