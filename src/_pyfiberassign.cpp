@@ -1092,28 +1092,28 @@ PYBIND11_MODULE(_internal, m) {
         .def_readonly("id", &fba::Target::id, R"(
             The target ID.
         )")
-        .def_readonly("ra", &fba::Target::ra, R"(
+        .def_readwrite("ra", &fba::Target::ra, R"(
             The target RA.
         )")
-        .def_readonly("dec", &fba::Target::dec, R"(
+        .def_readwrite("dec", &fba::Target::dec, R"(
             The target DEC.
         )")
-        .def_readonly("bits", &fba::Target::bits, R"(
+        .def_readwrite("bits", &fba::Target::bits, R"(
             The target bitfield (e.g. DESI_TARGET, CMX_TARGET, etc).
         )")
         .def_readwrite("obsremain", &fba::Target::obsremain, R"(
             The remaining observations for this target.
         )")
-        .def_readonly("priority", &fba::Target::priority, R"(
+        .def_readwrite("priority", &fba::Target::priority, R"(
             The integer priority class for this target.
         )")
-        .def_readonly("subpriority", &fba::Target::subpriority, R"(
+        .def_readwrite("subpriority", &fba::Target::subpriority, R"(
             The float64 subpriority on the range [0,1).
         )")
-        .def_readonly("obscond", &fba::Target::obscond, R"(
+        .def_readwrite("obscond", &fba::Target::obscond, R"(
             The valid observing conditions allowed for this target.
         )")
-        .def_readonly("type", &fba::Target::type, R"(
+        .def_readwrite("type", &fba::Target::type, R"(
             The internal target type (science, standard, sky, safe).
         )")
         .def("is_science", &fba::Target::is_science, R"(
